@@ -274,9 +274,16 @@ bot.dialog('/', function (session) {
                     session.send('Random');
                     break;
                 case 'Debug':
+                    /*
                     var message = {
                         'message': 'FUNC01'
                     };
+                    */
+
+                    var message = {
+                        'address': session.message.address,
+                        'text': 'HAHA'
+                    }
 
                     queue.pushMessageQFunc(message, 'AzureWebJobsStorage', 'bot-queue')
                         .then(() => {
