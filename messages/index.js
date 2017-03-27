@@ -28,11 +28,247 @@ var tripit_auth_url = 'https://tripit-auth.azurewebsites.net/';
 // Intercept trigger event (ActivityTypes.Trigger)
 bot.on('trigger', function (message) {
     // handle message from trigger function
+    /*
     var queuedMessage = message.value;
     var reply = new builder.Message()
         .address(queuedMessage.address)
         .text('This is coming from the trigger: ' + queuedMessage.text);
     bot.send(reply);
+    */
+
+    //console.log('Triggered');
+    // Handle message from trigger function
+    var queuedMessage = message.value;
+    var address = queuedMessage.address;
+    var payload = JSON.parse(queuedMessage.text); // will have .origin and .intent
+
+    // Becomes a PM to Slack when .conversation is removed
+    if (address.channelId != 'webchat') delete address.conversation;
+
+    // TODO: Test on login when these params are missing
+
+    switch (payload.origin) {
+        case 'tripit':
+            if (payload.intent == 'trip_update') {
+
+                var trip = payload.trip;
+
+                var card = new builder.ThumbnailCard()
+                    .title('TripIt Alert')
+                    .subtitle('Trip date: ' + trip.Trip.start_date)
+                    .text('Your trip to ' + trip.Trip.primary_location + ' has been ' + trip.Trip.tripit_change)
+                    .images([
+                        builder.CardImage.create(null, trip.Trip.image_url)
+                    ])
+                    .buttons([
+                        builder.CardAction.openUrl(null, 'https://www.tripit.com/trip/show/id/' + trip.Trip.id, 'View in TripIt')
+                    ]);
+
+                var msg = new builder.Message()
+                    .address(queuedMessage.address)
+                    .addAttachment(card);
+                // Send it to the channel
+                bot.send(msg);
+                //bot.send(JSON.stringify(message));
+
+                /*
+                var auth = payload.auth;
+                var notification = payload.notification;
+
+                //bot.send('Notification: ' + JSON.stringify(notification));
+
+                tripit.getTrip(auth.tripit_token, auth.tripit_tokenSecret, notification.tripit_id)
+                    .then((_trip) => {
+                        // Construct message to send to the channel
+
+                        var trip = JSON.parse(_trip);
+
+                        var card = new builder.ThumbnailCard()
+                            .title('TripIt Alert')
+                            .subtitle('Trip date: ' + trip.Trip.start_date)
+                            .text('Your trip to ' + trip.Trip.primary_location + ' has been ' + notification.tripit_change)
+                            .images([
+                                builder.CardImage.create(null, trip.Trip.image_url)
+                            ])
+                            .buttons([
+                                builder.CardAction.openUrl(null, 'https://www.tripit.com/trip/show/id/' + notification.tripit_id, 'View in TripIt')
+                            ]);
+
+                        var msg = new builder.Message()
+                            .address(queuedMessage.address)
+                            .addAttachment(card);
+                        // Send it to the channel
+                        bot.send(msg);
+                        //bot.send(JSON.stringify(message));
+
+                    })
+                    .catch((error) => {
+                        bot.send('Error: ' + error)
+                    });
+                */
+
+                /*
+                var reply = new builder.Message()
+                    .address(address)
+                    //.text('This is coming from the trigger: ' + JSON.stringify(message));
+                    .text('HEY');
+
+                // Send it to the channel
+                bot.send(reply);
+                */
+            }
+            break;
+        case 'bot':
+
+            // TOO SLOW, not used at the moment
+            if(payload.intent == 'trip_list') {
+
+                var trips = JSON.parse(payload.trips).Trip;
+
+
+                var reply = new builder.Message()
+                    .address(address)
+                    //.text('This is coming from the trigger: ' + JSON.stringify(message));
+                    .text('Trips: '  + JSON.stringify(trips[0]));
+
+                // Send it to the channel
+                bot.send(reply);
+
+                /*
+                var cards = [];
+                for (var i = 0, len = trips.length; i < len; i++) {
+                    var card = new builder.ThumbnailCard(session)
+                        .title('Trip name: ' + trips[i].display_name)
+                        .subtitle(trips[i].start_date + ' - ' + trips[i].primary_location) //trips[i].start_date + ' - ' + trips[i].primary_location)
+                        .text('Your trip to ' + trips[i].primary_location + ' from ' + trips[i].start_date + ' to ' + trips[i].end_date) //+ trips[i].primary_location + ' from ' + trips[i].start_date + ' to ' + trips[i].end_date)
+                        .images([
+                            builder.CardImage.create(null, trips[i].image_url) //trips[i].image_url)
+                        ])
+                        .buttons([
+                            builder.CardAction.openUrl(null, 'https://www.tripit.com/trip/show/id/' + trips[i].id, 'View in TripIt'),
+                            //builder.CardAction.openUrl(session, 'https://www.tripit.com/trip/show/id/' + trips[i].id, 'Share Trip')
+                            builder.CardAction.dialogAction(null, "share", trips[i].id, "Share trip")
+                            //builder.CardAction.imBack(session, "<Message>", "<Button>")
+
+                        ]);
+                    cards.push(card);
+                }
+
+                // create reply with Carousel AttachmentLayout
+                var message = new builder.Message()
+                    .address(address)
+                    .attachmentLayout(builder.AttachmentLayout.carousel)
+                    .attachments(cards);
+
+                //session.send(reply);
+                bot.send(message);
+                */
+            }
+
+            break;
+        default:
+            var reply = new builder.Message()
+                .address(address)
+                //.text('This is coming from the trigger: ' + JSON.stringify(message));
+                .text('TEST');
+
+            // Send it to the channel
+            bot.send(reply);
+            break;
+    }
+
+    //TODO: Standardize on payload format coming from queue trigger
+    // 'payload' is JSON-parsed .text
+    /*
+    if (payload.action == 'share') { // Not used at the moment
+
+    }
+    // Notification from TripIt
+    else if (payload.notification) {
+        var auth = payload.auth;
+        var notification = payload.notification;
+
+        //bot.send('Notification: ' + JSON.stringify(notification));
+
+        tripit.getTrip(auth.tripit_token, auth.tripit_tokenSecret, notification.tripit_id)
+            .then((_trip) => {
+                // Construct message to send to the channel
+
+                //var reply = new builder.Message()
+                //    .address(queuedMessage.address)
+                //    .text('This is coming from the trigger: ' + JSON.stringify(trip));
+
+
+                //var reply = new builder.Message()
+                //    .address(queuedMessage.address)
+                //    .text('Payload: ' + JSON.stringify(trip));
+
+                // Send it to the channel
+                //bot.send(reply);
+
+                var trip = JSON.parse(_trip);
+
+                var card = new builder.ThumbnailCard()
+                    .title('TripIt Alert')
+                    .subtitle('Trip date: ' + trip.Trip.start_date)
+                    .text('Your trip to ' + trip.Trip.primary_location + ' has been ' + notification.tripit_change)
+                    .images([
+                        builder.CardImage.create(null, trip.Trip.image_url)
+                    ])
+                    .buttons([
+                        builder.CardAction.openUrl(null, 'https://www.tripit.com/trip/show/id/' + notification.tripit_id, 'View in TripIt')
+                    ]);
+
+                var msg = new builder.Message()
+                    .address(queuedMessage.address)
+                    .addAttachment(card);
+                // Send it to the channel
+                bot.send(msg);
+                //bot.send(JSON.stringify(message));
+
+            })
+            .catch((error) => {
+                bot.send('Error: ' + error)
+            });
+
+        // Below means we're getting notification from TripIt Webhook function
+        // .. and not internally e.g. login
+
+    } else {
+        // TODO: For some reason login confirmation bot reply is not send on widgets
+        var reply = new builder.Message()
+            .address(queuedMessage.address)
+            //.text('This is coming from the trigger: ' + JSON.stringify(message));
+            .text('You\'re logged in!');
+
+        // Send it to the channel
+        bot.send(reply);
+    }
+    */
+
+    // Construct message to send to the channel
+
+    /*
+    var reply = new builder.Message()
+        .address(queuedMessage.address)
+        .text('This is coming from the trigger: ' + payload.notification);
+
+    // Send it to the channel
+    bot.send(reply);
+    */
+
+    /* Was testing to see if this will work, nope it didn't
+    bot.beginDialog(reply, 'fromTrigger', null, (err) => {
+        if (err) {
+            // error ocurred while starting new conversation. Channel not supported?
+            bot.send(new builder.Message()
+                .text('This channel does not support this operation: ' + err.message)
+                .address(queuedMessage.address));
+        }
+    });
+    */
+
+
 });
 
 // Handle message from user
