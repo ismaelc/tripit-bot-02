@@ -34,7 +34,7 @@ bot.on('trigger', function (message) {
         .address(queuedMessage.address)
         .text('This is coming from the trigger: ' + queuedMessage.text);
     bot.send(reply);
-    
+
 
     //console.log('Triggered');
     // Handle message from trigger function
@@ -278,7 +278,7 @@ bot.dialog('/', function (session) {
                         'message': 'FUNC01'
                     };
 
-                    queue.pushMessageQFunc(message, 'AzureWebJobsStorage', 'js-queue-items')
+                    queue.pushMessageQFunc(message, 'AzureWebJobsStorage', 'bot-queue')
                         .then(() => {
                             session.send('Pushed: ' + JSON.stringify(message));
                             session.endDialog();
