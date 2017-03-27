@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "dependencies": {
-    "botbuilder": "^3.4.2",
+    "botbuilder": "3.7.0",
     "botbuilder-azure": "0.0.1",
     "azure-storage": "2.0.0",
     "request": "2.71.0",
