@@ -7,6 +7,11 @@ https://docs.botframework.com/en-us/node/builder/overview/
 var builder = require("botbuilder");
 var botbuilder_azure = require("botbuilder-azure");
 var azure = require('azure-storage');
+var luis = require('./luis_stub.js');
+var utils = require('./utils.js');
+//var db = require('./documentdb.js');
+var tripit = require('./tripit.js');
+var queue = require('./queue.js');
 
 var useEmulator = (process.env.NODE_ENV == 'development');
 
